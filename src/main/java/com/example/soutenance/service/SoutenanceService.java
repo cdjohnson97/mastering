@@ -13,6 +13,8 @@ import com.example.soutenance.repository.SoutenanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class SoutenanceService {
@@ -30,6 +32,12 @@ public class SoutenanceService {
         );
     }
 
+    public List<Soutenance> getAllSoutenances() {
+        return soutenanceRepository.findAll();
+    }
+
+
+
     public Inscription inscrireEtudiant(Long soutenanceId, InscriptionRequest request) {
         Soutenance soutenance = soutenanceRepository.findById(soutenanceId)
                 .orElseThrow(() -> new SoutenanceNotFoundException(soutenanceId));
@@ -44,5 +52,9 @@ public class SoutenanceService {
                         .creneauHoraire(request.getCreneauHoraire())
                         .build()
         );
+    }
+
+    public List<Apprenants> getEtudiantsBySoutenanceId(Long soutenanceId) {
+        return inscriptionRepository.findEtudiantsBySoutenanceId(soutenanceId);
     }
 }
