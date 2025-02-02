@@ -1,2 +1,24 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+
+# Fichiers générés
+target/
+build/
+out/
+bin/
+*.jar
+*.war
+*.ear
+
+# Environnement
+.env
+application.properties
+application-dev.properties
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
