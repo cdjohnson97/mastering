@@ -46,7 +46,7 @@ public class InscriptionService {
                 .soutenance(soutenance)
                 .etudiant(etudiant)
                 .creneauHoraire(request.getCreneauHoraire())
-                .statut(StatutInscription.EN_ATTENTE)
+                .statut(StatutInscription.APPRENANT)
                 .build();
 
         return inscriptionRepository.save(inscription);

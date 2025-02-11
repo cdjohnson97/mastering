@@ -10,25 +10,21 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Inscription {
+public class Document {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne
-    @JoinColumn(name = "soutenance_id", nullable = false)
-    private Soutenance soutenance;
-
-    @ManyToOne
-    @JoinColumn(name = "etudiant_id", nullable = false)
+    @JoinColumn(name = "etudiant_id")
     private Apprenants etudiant;
 
-    private LocalDateTime creneauHoraire;
-
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private StatutInscription statut = StatutInscription.APPRENANT;
+    private String documentType; // SCHOOL_CERTIFICATE, ID_DOCUMENT, etc.
+    private String fileName;
+    private String fileType;
+    private String filePath;
+    private LocalDateTime uploadDate;
+    private boolean verified;
 }

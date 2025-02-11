@@ -2,6 +2,7 @@ package com.example.soutenance.service;
 
 import com.example.soutenance.dto.ApprenantRequest;
 import com.example.soutenance.model.Apprenants;
+import com.example.soutenance.model.StatutInscription;
 import com.example.soutenance.repository.ApprenantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

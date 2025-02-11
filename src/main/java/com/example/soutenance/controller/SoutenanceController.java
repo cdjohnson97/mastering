@@ -52,7 +52,7 @@ public class SoutenanceController {
                         .email(e.getEmail())
                         .statut(getStatutInscription(soutenanceId, e.getId())) // Méthode à implémenter
                         .build())
-                .toList();
+                        .toList();
 
         return ResponseEntity.ok(dtos);
     }
@@ -60,7 +60,7 @@ public class SoutenanceController {
     private StatutInscription getStatutInscription(Long soutenanceId, Long etudiantId) {
         List<Inscription> inscriptions = inscriptionRepository.findBySoutenanceIdAndEtudiantId(soutenanceId, etudiantId);
         return inscriptions.isEmpty() ?
-                StatutInscription.EN_ATTENTE :
+                StatutInscription.APPRENANT :
                 inscriptions.get(0).getStatut();  // Or implement logic to determine which status to return if multiple exist
     }
 

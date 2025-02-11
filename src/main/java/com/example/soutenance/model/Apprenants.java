@@ -32,5 +32,17 @@ public class Apprenants {
         @OneToMany(mappedBy = "etudiant", cascade = CascadeType.ALL)
         @Builder.Default
         private List<Inscription> inscriptions = new ArrayList<>();
-    }
+
+        @Builder.Default
+        private boolean emailVerified = false;
+
+
+        @Enumerated(EnumType.STRING)
+        @Builder.Default
+        private StatutInscription status = StatutInscription.EN_ATTENTE;
+}
+
+
+
+
 
