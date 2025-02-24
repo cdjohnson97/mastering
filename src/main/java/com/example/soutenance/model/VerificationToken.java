@@ -8,36 +8,31 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "verification_token")
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+public class VerificationToken {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Entity
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public class VerificationToken {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Column(nullable = false, unique = true)
+    private String token;
 
-        private String token;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "etudiant_id", nullable = false)
+    private Apprenants etudiant;
 
-        @OneToOne(targetEntity = Apprenants.class, fetch = FetchType.EAGER)
-        @JoinColumn(nullable = false, name = "etudiant_id")
-        private Apprenants etudiant;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime expiryDate;
 
-        private LocalDateTime expiryDate;
+    @Column(nullable = false)
+    private boolean used = false;
 
-        @Builder.Default
-        private boolean used = false;
-
-        @Builder.Default
-        private boolean emailVerified = false;
-
-        private LocalDateTime confirmedDate;
-
-        public boolean isExpired() {
-            return LocalDateTime.now().isAfter(expiryDate);
-        }
-    }
-
-
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime confirmedDate;
+}

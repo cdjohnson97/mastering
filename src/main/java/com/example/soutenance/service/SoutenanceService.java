@@ -2,12 +2,11 @@ package com.example.soutenance.service;
 
 import com.example.soutenance.dto.InscriptionRequest;
 import com.example.soutenance.dto.SoutenanceRequest;
-import com.example.soutenance.exception.ApprenantNotFoundException;
 import com.example.soutenance.exception.SoutenanceNotFoundException;
 import com.example.soutenance.model.Apprenants;
 import com.example.soutenance.model.Inscription;
 import com.example.soutenance.model.Soutenance;
-import com.example.soutenance.model.VerificationToken;
+import com.example.soutenance.model.StatutInscription;
 import com.example.soutenance.repository.ApprenantRepository;
 import com.example.soutenance.repository.InscriptionRepository;
 import com.example.soutenance.repository.SoutenanceRepository;
@@ -50,6 +49,7 @@ public class SoutenanceService {
                     Apprenants newApprenant = Apprenants.builder()
                             .email(request.getEmailEtudiant())
                             .emailVerified(false)
+
                             .build();
                     return etudiantRepository.save(newApprenant);
                 });
@@ -60,15 +60,16 @@ public class SoutenanceService {
                         .soutenance(soutenance)
                         .etudiant(apprenant)
                         .creneauHoraire(request.getCreneauHoraire())
+                        .statut(StatutInscription.EN_ATTENTE)
                         .build()
         );
 
         // Send verification email if student is not verified
+
         if (!apprenant.isEmailVerified()) {
             String token = verificationService.createVerificationToken(apprenant);  // Use the instance
             emailService.sendVerificationEmail(apprenant, token);
         }
-
         return inscription;
     }
 

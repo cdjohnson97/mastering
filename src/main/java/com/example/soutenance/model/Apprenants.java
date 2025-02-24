@@ -1,5 +1,6 @@
 package com.example.soutenance.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +32,14 @@ public class Apprenants {
 
         @OneToMany(mappedBy = "etudiant", cascade = CascadeType.ALL)
         @Builder.Default
+        @JsonIgnoreProperties("etudiant")
         private List<Inscription> inscriptions = new ArrayList<>();
+
+
+        @OneToMany(mappedBy = "etudiant", cascade = CascadeType.ALL)  // Add this
+        @Builder.Default
+        @JsonIgnoreProperties("etudiant")  // Add this
+        private List<Document> documents = new ArrayList<>();
 
         @Builder.Default
         private boolean emailVerified = false;

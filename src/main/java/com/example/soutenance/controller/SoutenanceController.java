@@ -35,7 +35,8 @@ public class SoutenanceController {
             @PathVariable Long soutenanceId,
             @Valid @RequestBody InscriptionRequest request
     ) {
-        return ResponseEntity.ok(soutenanceService.inscrireEtudiant(soutenanceId, request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(soutenanceService.inscrireEtudiant(soutenanceId, request));
     }
 
     @GetMapping("/{soutenanceId}/etudiants")
@@ -50,7 +51,7 @@ public class SoutenanceController {
                         .nom(e.getNom())
                         .prenom(e.getPrenom())
                         .email(e.getEmail())
-                        .statut(getStatutInscription(soutenanceId, e.getId())) // Méthode à implémenter
+                        .statut(e.getStatus()) // Méthode à implémenter
                         .build())
                         .toList();
 
@@ -85,13 +86,13 @@ public class SoutenanceController {
     private List<SessionApparentRequest> getEtudiantsWithStatus(Long soutenanceId) {
         List<Apprenants> etudiants = soutenanceService.getEtudiantsBySoutenanceId(soutenanceId);
 
-        return etudiants.stream()
+        return etudiants.   stream()
                 .map(e -> SessionApparentRequest.builder()
                         .id(e.getId())
                         .nom(e.getNom())
                         .prenom(e.getPrenom())
                         .email(e.getEmail())
-                        .statut(getStatutInscription(soutenanceId, e.getId()))
+                        .statut(e.getStatus())
                         .build())
                 .toList();
     }

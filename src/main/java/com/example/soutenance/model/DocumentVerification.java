@@ -1,5 +1,6 @@
 package com.example.soutenance.model;
 
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,23 +17,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Soutenance {
+public class DocumentVerification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private LocalDateTime dateHeure;
+    @OneToOne
+    @JsonManagedReference  // Add this
+    private Document document;
 
-    @Column(nullable = false)
-    private String lieu;
+    private String adminComment;
+    private LocalDateTime verificationDate;
+    private String verifiedBy;
 
-    private String sujet;
+    @Enumerated(EnumType.STRING)
+    private DocumentStatus status;
 
-    @OneToMany(mappedBy = "soutenance", cascade = CascadeType.ALL)
-    @Builder.Default
-    @JsonManagedReference(value = "soutenance-inscription")  // Add this
-    private List<Inscription> inscriptions = new ArrayList<>();
+    @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL)
+    private List<VerificationComment> comments = new ArrayList<>();
 }
-
-

@@ -1,5 +1,7 @@
 package com.example.soutenance.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +21,8 @@ public class Document {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "etudiant_id")
+    @JsonIgnoreProperties("documents")
+    @JsonBackReference
     private Apprenants etudiant;
 
     private String documentType; // SCHOOL_CERTIFICATE, ID_DOCUMENT, etc.
@@ -26,5 +30,8 @@ public class Document {
     private String fileType;
     private String filePath;
     private LocalDateTime uploadDate;
-    private boolean verified;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private DocumentStatus status = DocumentStatus.PENDING;
 }

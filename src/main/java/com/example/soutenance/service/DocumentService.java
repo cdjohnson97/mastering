@@ -9,6 +9,7 @@ import com.example.soutenance.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -28,9 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ApprenantRepository apprenantsRepository;
+    private final EmailService emailService;
+    private final VerificationService verification;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
+    private long maxFileSize;
+
 
     public Document uploadDocument(Long etudiantId, String documentType, MultipartFile file) {
         try {
@@ -69,8 +74,10 @@ public class DocumentService {
 
             Document savedDocument = documentRepository.save(document);
 
+
+
             // Check if all required documents are uploaded
-            checkAndUpdateStudentStatus(etudiant);
+            checkAndUpdateStudentStatus(etudiant, document);
 
             return savedDocument;
 
@@ -79,7 +86,9 @@ public class DocumentService {
             throw new RuntimeException("Failed to save file: " + e.getMessage());
         }
     }
-    private void checkAndUpdateStudentStatus(Apprenants etudiant) {
+
+    @Transactional
+    public void checkAndUpdateStudentStatus(Apprenants etudiant ,Document document) {
         boolean hasSchoolCertificate = documentRepository
                 .existsByEtudiantIdAndDocumentType(etudiant.getId(), DocumentType.SCHOOL_CERTIFICATE.name());
         boolean hasIdDocument = documentRepository
@@ -88,10 +97,18 @@ public class DocumentService {
         if (hasSchoolCertificate && hasIdDocument) {
             etudiant.setStatus(StatutInscription.EN_VERIFICATION);  // Using existing enum
             apprenantsRepository.save(etudiant);
+
+            // Send email notification
+            emailService.sendProfileUnderVerificationEmail(etudiant, document);
+
+            log.info("Profile status updated to EN_VERIFICATION for student: {}", etudiant.getEmail());
         }
-    }
+
+        }
 
     public List<Document> getStudentDocuments(Long etudiantId) {
         return documentRepository.findByEtudiantId(etudiantId);
     }
-}
+    }
+
+
