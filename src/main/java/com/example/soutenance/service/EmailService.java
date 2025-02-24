@@ -2,6 +2,7 @@ package com.example.soutenance.service;
 
 import com.example.soutenance.model.Apprenants;
 import com.example.soutenance.model.Document;
+import com.example.soutenance.model.Inscription;
 import com.example.soutenance.model.Soutenance;
 import com.example.soutenance.repository.SoutenanceRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -14,8 +15,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import jakarta.mail.MessagingException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ import java.util.List;
 public class EmailService {
     private final JavaMailSender mailSender;
     private final SoutenanceRepository soutenanceRepository;
+    private int documentDeadlineDays;
 
 
     @Value("${app.frontend.url}")
@@ -267,19 +271,109 @@ public class EmailService {
     }
 
     public void sendProfileVerificationComplete(Apprenants etudiant) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(etudiant.getEmail());
-        message.setSubject("Profil vérifié avec succès");
-        message.setText(String.format(
-                "Bonjour %s,\n\n" +
-                        "Nous sommes heureux de vous informer que tous vos documents ont été vérifiés et approuvés.\n" +
-                        "Votre profil est maintenant complètement vérifié.\n" +
-                        "Vous pouvez maintenant procéder à vos inscriptions aux soutenances.\n\n" +
-                        "Cordialement",
-                etudiant.getPrenom()
-        ));
-        mailSender.send(message);
-        log.info("Profile verification complete email sent to: {}", etudiant.getEmail());
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(etudiant.getEmail());
+            helper.setSubject("Profil vérifié avec succès");
+
+            String htmlContent = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .email-container {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .header {
+                        background-color: #4A90E2;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        border-radius: 5px 5px 0 0;
+                    }
+                    .content {
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border: 1px solid #dedede;
+                        border-radius: 0 0 5px 5px;
+                    }
+                    .button {
+                        background-color: #4CAF50;
+                        color: white;
+                        padding: 15px 25px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        margin: 20px 0;
+                    }
+                    .verification-badge {
+                        background-color: #e8f5e9;
+                        border-radius: 15px;
+                        padding: 20px;
+                        margin: 20px auto;
+                        text-align: center;
+                        max-width: 300px;
+                    }
+                    .verification-icon {
+                        color: #4CAF50;
+                        font-size: 48px;
+                        margin-bottom: 10px;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 20px;
+                        color: #666;
+                        font-size: 12px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <h1>Mastering service</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Félicitations %s !</h2>
+                        
+                        <div class="verification-badge">
+                            <div class="verification-icon">✓</div>
+                            <h3>Vérification Complète</h3>
+                            <p>Tous vos documents ont été validés</p>
+                        </div>
+                        
+                        <p>Nous sommes heureux de vous informer que tous vos documents ont été vérifiés et approuvés.</p>
+                        <p>Votre profil est maintenant complètement vérifié et vous pouvez procéder au depôt de votre mémoire pour examen.</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s/soutenances" class="button">
+                                Voir les soutenances disponibles
+                            </a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+                        <p>Mastering© 2025. Tous droits réservés.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+                    etudiant.getPrenom(),
+                    frontendUrl
+            );
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Profile verification complete email sent to: {}", etudiant.getEmail());
+
+        } catch (MessagingException e) {
+            log.error("Failed to send profile verification email: {}", e.getMessage());
+        }
     }
 
     public void sendDocumentCommentNotification(Apprenants etudiant, String documentType, String comment) {
@@ -333,31 +427,364 @@ public class EmailService {
 
     }
 
-        public void sendProfileUnderVerificationEmail(Apprenants etudiant, Document document) {
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(etudiant.getEmail());
-                message.setSubject("Document soumis - Profil en cours de vérification");
 
-                message.setText(String.format(
-                        "Bonjour %s,\n\n" +
-                                "Nous confirmons que votre document '%s' a été soumis avec succès.\n\n" +
-                                "Votre profil est maintenant en cours de vérification par notre équipe administrative.\n" +
-                                "Vous serez notifié par email une fois la vérification terminée.\n\n" +
-                                "Cordialement,\n" +
-                                "L'équipe administrative",
-                        etudiant.getPrenom(),
-                        document.getDocumentType()
-                ));
 
-                mailSender.send(message);
-                log.info("Profile under verification email sent to: {}", etudiant.getEmail());
 
-            } catch (Exception e) {
-                log.error("Failed to send profile verification email: {}", e.getMessage());
-            }
+    public void sendProfileUnderVerificationEmail(Apprenants etudiant, Document document) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(etudiant.getEmail());
+            helper.setSubject("Document soumis - Profil en cours de vérification");
+
+            String htmlContent = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .email-container {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .header {
+                        background-color: #4A90E2;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        border-radius: 5px 5px 0 0;
+                    }
+                    .content {
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border: 1px solid #dedede;
+                        border-radius: 0 0 5px 5px;
+                    }
+                    .document-badge {
+                        background-color: #e3f2fd;
+                        border-radius: 10px;
+                        padding: 15px;
+                        margin: 20px 0;
+                        border-left: 4px solid #2196F3;
+                    }
+                    .status-indicator {
+                        text-align: center;
+                        margin: 20px 0;
+                    }
+                    .status-badge {
+                        display: inline-block;
+                        background-color: #ffecb3;
+                        color: #ff8f00;
+                        padding: 8px 15px;
+                        border-radius: 30px;
+                        font-weight: bold;
+                    }
+                    .progress-container {
+                        background-color: #f5f5f5;
+                        border-radius: 10px;
+                        height: 20px;
+                        width: 100%%;
+                        margin: 15px 0;
+                    }
+                    .progress-bar {
+                        height: 100%%;
+                        width: 30%%;
+                        background-color: #4A90E2;
+                        border-radius: 10px;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 20px;
+                        color: #666;
+                        font-size: 12px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <h1>Mastering Service </h1>
+                    </div>
+                    <div class="content">
+                        <h2>Bonjour %s,</h2>
+                        
+                        <div class="document-badge">
+                            <h3>Document soumis avec succès</h3>
+                            <p>Type: <strong>%s</strong></p>
+                            <p>Date: <strong>%s</strong></p>
+                        </div>
+                        
+                        <p>Votre document a bien été reçu et est en cours de traitement.</p>
+                        
+                        <div class="status-indicator">
+                            <div class="status-badge">En cours de vérification</div>
+                            <div class="progress-container">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        
+                        <p>Votre profil est maintenant en cours de vérification par notre équipe administrative. Ce processus peut prendre jusqu'à 48 heures ouvrables.</p>
+                        <p>Vous recevrez une notification par email dès que la vérification sera terminée.</p>
+                    </div>
+                    <div class="footer">
+                        <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+                        <p>Mastering© 2025. Tous droits réservés.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+                    etudiant.getPrenom(),
+                    document.getDocumentType(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+            );
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Profile under verification email sent to: {}", etudiant.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send profile verification email: {}", e.getMessage());
         }
     }
+
+    public void sendProfilCompletedEmail(Apprenants etudiant) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(etudiant.getEmail());
+            helper.setSubject("Profil complété avec succès");
+
+            String htmlContent = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .email-container {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .header {
+                        background-color: #4A90E2;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        border-radius: 5px 5px 0 0;
+                    }
+                    .content {
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border: 1px solid #dedede;
+                        border-radius: 0 0 5px 5px;
+                    }
+                    .button {
+                        background-color: #4CAF50;
+                        color: white;
+                        padding: 15px 25px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        margin: 20px 0;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 20px;
+                        color: #666;
+                        font-size: 12px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <h1>Mastering Service</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Félicitations %s !</h2>
+                        <p>Votre profil a été créé avec succès. Vous pouvez maintenant :</p>
+                        <ul>
+                            <li>Vous inscrire aux soutenances</li>
+                            <li>Soumettre vos documents</li>
+                            <li>Suivre l'état de vos inscriptions</li>
+                        </ul>
+                        <div style="text-align: center;">
+                            <a href="%s/dashboard" class="button">
+                                Accéder à mon espace
+                            </a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>Mastering© 2025. Tous droits réservés.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+                    etudiant.getPrenom(),
+                    frontendUrl
+            );
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Profile completion email sent to: {}", etudiant.getEmail());
+
+        } catch (MessagingException e) {
+            log.error("Failed to send profile completion email: {}", e.getMessage());
+        }
+    }
+
+
+
+
+
+    public void sendSoutenanceInscriptionEmail(Inscription inscription) {
+        try {
+            Apprenants etudiant = inscription.getEtudiant();
+            Soutenance soutenance = inscription.getSoutenance();
+
+            // Valeurs par défaut si non définies dans les propriétés
+            int docsDeadlineDays = documentDeadlineDays > 0 ? documentDeadlineDays : 14;
+            int memoireDeadlineDays = docsDeadlineDays / 2; // Moitié du délai pour les docs administratifs
+
+            // Vérifier que les dates sont différentes de la date de soutenance
+            LocalDateTime soutenanceDate = soutenance.getDateHeure();
+            LocalDateTime documentsDeadline = soutenanceDate.minusDays(docsDeadlineDays);
+            LocalDateTime memoireDeadline = soutenanceDate.minusDays(memoireDeadlineDays);
+
+            // Ajouter des logs pour vérifier les dates
+            log.info("Soutenance date: {}", soutenanceDate);
+            log.info("Documents deadline: {}", documentsDeadline);
+            log.info("Mémoire deadline: {}", memoireDeadline);
+
+            String formattedSoutenanceDate = soutenanceDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String formattedDocumentsDeadline = documentsDeadline.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String formattedMemoireDeadline = memoireDeadline.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+            // Vérifier dans les logs si les dates formatées sont différentes
+            log.info("Formatted soutenance date: {}", formattedSoutenanceDate);
+            log.info("Formatted documents deadline: {}", formattedDocumentsDeadline);
+            log.info("Formatted mémoire deadline: {}", formattedMemoireDeadline);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(etudiant.getEmail());
+            helper.setSubject("Confirmation d'inscription à la soutenance");
+
+            String htmlContent = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .email-container {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .header {
+                        background-color: #4A90E2;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        border-radius: 5px 5px 0 0;
+                    }
+                    .content {
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border: 1px solid #dedede;
+                        border-radius: 0 0 5px 5px;
+                    }
+                    .button {
+                        background-color: #4CAF50;
+                        color: white;
+                        padding: 15px 25px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        margin: 20px 0;
+                    }
+                    .deadlines {
+                        background-color: #fff9e6;
+                        border-left: 4px solid #ffc107;
+                        padding: 15px;
+                        margin: 20px 0;
+                    }
+                    .documents {
+                        margin-top: 20px;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 20px;
+                        color: #666;
+                        font-size: 12px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <h1>Mastering service</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Félicitations %s !</h2>
+                        <p>Votre inscription à la soutenance <strong>%s</strong> prévue le <strong>%s</strong> à <strong>%s</strong> a été enregistrée.</p>
+                        
+                        <div class="deadlines">
+                            <h3>⚠️ Dates importantes à retenir :</h3>
+                            <p><strong>%s</strong> : Date limite pour compléter votre profil et soumettre vos documents administratifs</p>
+                            <p><strong>%s</strong> : Date limite pour soumettre votre mémoire</p>
+                        </div>
+                        
+                        <div class="documents">
+                            <h3>Documents requis :</h3>
+                            <ul>
+                                <li>Carte d'identité / Passeport</li>
+                                <li>Certificat de scolarité</li>
+                                <li>Mémoire (format PDF)</li>
+                            </ul>
+                        </div>
+                        
+                        <p>Pour que votre candidature soit validée et votre profile vérifié,  il est impératif de respecter ces délais.</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s/profil/documents" class="button">
+                                Compléter mon dossier
+                            </a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+                        <p>Mastering© 2025. Tous droits réservés.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+                    etudiant.getPrenom(),
+                    soutenance.getSujet(),
+                    soutenance.getDateHeure().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    soutenance.getLieu(),
+                    formattedDocumentsDeadline,  // Première date limite (documents administratifs)
+                    formattedMemoireDeadline,    // Deuxième date limite (mémoire)
+                    frontendUrl
+            );
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Soutenance inscription confirmation email sent to: {}", etudiant.getEmail());
+
+        } catch (MessagingException e) {
+            log.error("Failed to send soutenance inscription email: {}", e.getMessage());
+        }
+    }
+    }
+
 
 
 

@@ -67,6 +67,8 @@
                         .statut(StatutInscription.EN_ATTENTE)
                         .build();
 
+                // Envoyer l'email de confirmation avec les informations sur les documents
+                emailService.sendSoutenanceInscriptionEmail(inscription);
                 return inscriptionRepository.save(inscription);
 
             } catch (EmailNotVerifiedException e) {

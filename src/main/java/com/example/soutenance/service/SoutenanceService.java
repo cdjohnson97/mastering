@@ -70,6 +70,8 @@ public class SoutenanceService {
             String token = verificationService.createVerificationToken(apprenant);  // Use the instance
             emailService.sendVerificationEmail(apprenant, token);
         }
+
+
         return inscription;
     }
 

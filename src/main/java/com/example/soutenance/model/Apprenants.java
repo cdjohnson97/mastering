@@ -16,38 +16,27 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Apprenants {
-
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        @Column(nullable = false)
         private String nom;
-
-        @Column(nullable = false)
         private String prenom;
-
-        @Column(unique = true, nullable = false)
         private String email;
+        private String telephone;
+        private String niveauEtude;
+        private String specialite;
 
-        @OneToMany(mappedBy = "etudiant", cascade = CascadeType.ALL)
-        @Builder.Default
-        @JsonIgnoreProperties("etudiant")
-        private List<Inscription> inscriptions = new ArrayList<>();
-
-
-        @OneToMany(mappedBy = "etudiant", cascade = CascadeType.ALL)  // Add this
-        @Builder.Default
-        @JsonIgnoreProperties("etudiant")  // Add this
-        private List<Document> documents = new ArrayList<>();
-
-        @Builder.Default
-        private boolean emailVerified = false;
-
+        private boolean emailVerified;
 
         @Enumerated(EnumType.STRING)
-        @Builder.Default
         private StatutInscription status = StatutInscription.EN_ATTENTE;
+
+        @OneToMany(mappedBy = "etudiant")
+        private List<Document> documents;
+
+        @OneToMany(mappedBy = "etudiant")
+        private List<Inscription> inscriptions;
 }
 
 
